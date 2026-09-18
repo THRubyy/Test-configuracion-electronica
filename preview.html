@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Test de configuración electrónica</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: #f3f4f6;
+  font-family: Arial, sans-serif;
+  color: #222;
+}
+
+.card {
+  max-width: 720px;
+  margin: 20px auto;
+  background: white;
+  padding: 28px;
+  border-radius: 18px;
+  box-shadow: 0 8px 30px rgba(0,0,0,.10);
+}
+
+h1 {
+  text-align: center;
+  margin-top: 0;
+}
+
+.counter {
+  text-align: center;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.progress {
+  height: 10px;
+  background: #e5e7eb;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 25px;
+}
+
+.progress-bar {
+  height: 100%;
+  width: 0;
+  background: #2563eb;
+  transition: .25s;
+}
+
+.atomic {
+  text-align: center;
+  font-size: 30px;
+  font-weight: bold;
+  margin: 20px 0 28px;
+}
+
+label {
+  display: block;
+  font-weight: bold;
+  margin: 15px 0 7px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid #bbb;
+  border-radius: 9px;
+  font-size: 17px;
+  outline: none;
+}
+
+input:focus {
+  border-color: #2563eb;
+}
+
+.config-input {
+  font-family: "Times New Roman", serif;
+}
+
+button.check {
+  width: 100%;
+  padding: 14px;
+  margin-top: 24px;
+  border: 0;
+  border-radius: 10px;
+  background: #2563eb;
+  color: white;
+  font-size: 17px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button.check:hover {
+  background: #1d4ed8;
+}
+
+.feedback {
+  margin-top: 18px;
+  padding: 12px;
+  border-radius: 9px;
+  display: none;
+}
+
+.ok {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.bad {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.score {
+  text-align: center;
+  font-size: 22px;
+  font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<div class="card">
+
+  <h1>Test de configuración electrónica</h1>
+
+  <div class="counter" id="counter"></div>
+
+  <div class="progress">
+    <div class="progress-bar" id="progress"></div>
+  </div>
+
+  <div class="atomic" id="atomic"></div>
+
+  <label>Configuración electrónica completa</label>
+
+  <input
+    id="config"
+    class="config-input"
+    autocomplete="off"
+    placeholder="Ej.: 1s2 2s2 2p6"
+  >
+
+  <label>Configuración electrónica de la capa de valencia</label>
+
+  <input
+    id="valence"
+    autocomplete="off"
+    placeholder="Ej.: 3s2 3p5"
+  >
+
+  <label>Grupo</label>
+
+  <input
+    id="group"
+    type="text"
+    inputmode="numeric"
+    autocomplete="off"
+  >
+
+  <label>Período</label>
+
+  <input
+    id="period"
+    type="text"
+    inputmode="numeric"
+    autocomplete="off"
+  >
+
+  <label>n</label>
+
+  <input
+    id="n"
+    type="text"
+    inputmode="numeric"
+    autocomplete="off"
+  >
+
+  <label>l</label>
+
+  <input
+    id="l"
+    type="text"
+    inputmode="numeric"
+    autocomplete="off"
+  >
+
+  <label>mₗ</label>
+
+  <input
+    id="ml"
+    type="text"
+    inputmode="numeric"
+    autocomplete="off"
+  >
+
+  <label>nº spin</label>
+
+  <input
+    id="spin"
+    type="text"
+    autocomplete="off"
+    placeholder="Ej.: +1/2 o −1/2"
+  >
+
+  <button class="check" id="check">
+    Comprobar
+  </button>
+
+  <div id="feedback" class="feedback"></div>
+
+</div>
+
+
+<script>
+
+/*
+===========================================================
+ELEMENTOS 1-50
+===========================================================
+Formato:
+
+Z
+Símbolo
+Configuración electrónica completa
+Configuración de la capa de valencia
+Grupo
+Período
+l del electrón diferenciador
+m_l de referencia
+spin de referencia
+===========================================================
+*/
+
+const elements = [
+
+[1,"H","1s1","1s1",1,1,0,0,"+1/2"],
+[2,"He","1s2","1s2",18,1,0,0,"-1/2"],
+
+[3,"Li","1s2 2s1","2s1",1,2,0,0,"+1/2"],
+[4,"Be","1s2 2s2","2s2",2,2,0,0,"-1/2"],
+[5,"B","1s2 2s2 2p1","2s2 2p1",13,2,1,-1,"+1/2"],
+[6,"C","1s2 2s2 2p2","2s2 2p2",14,2,1,-1,"+1/2"],
+[7,"N","1s2 2s2 2p3","2s2 2p3",15,2,1,-1,"+1/2"],
+[8,"O","1s2 2s2 2p4","2s2 2p4",16,2,1,-1,"-1/2"],
+[9,"F","1s2 2s2 2p5","2s2 2p5",17,2,1,-1,"-1/2"],
+[10,"Ne","1s2 2s2 2p6","2s2 2p6",18,2,1,-1,"-1/2"],
+
+[11,"Na","1s2 2s2 2p6 3s1","3s1",1,3,0,0,"+1/2"],
+[12,"Mg","1s2 2s2 2p6 3s2","3s2",2,3,0,0,"-1/2"],
+[13,"Al","1s2 2s2 2p6 3s2 3p1","3s2 3p1",13,3,1,-1,"+1/2"],
+[14,"Si","1s2 2s2 2p6 3s2 3p2","3s2 3p2",14,3,1,-1,"+1/2"],
+[15,"P","1s2 2s2 2p6 3s2 3p3","3s2 3p3",15,3,1,-1,"+1/2"],
+[16,"S","1s2 2s2 2p6 3s2 3p4","3s2 3p4",16,3,1,-1,"-1/2"],
+[17,"Cl","1s2 2s2 2p6 3s2 3p5","3s2 3p5",17,3,1,-1,"-1/2"],
+[18,"Ar","1s2 2s2 2p6 3s2 3p6","3s2 3p6",18,3,1,-1,"-1/2"],
+
+[19,"K","1s2 2s2 2p6 3s2 3p6 4s1","4s1",1,4,0,0,"+1/2"],
+[20,"Ca","1s2 2s2 2p6 3s2 3p6 4s2","4s2",2,4,0,0,"-1/2"],
+
+[21,"Sc","1s2 2s2 2p6 3s2 3p6 4s2 3d1","4s2",3,4,2,-2,"+1/2"],
+[22,"Ti","1s2 2s2 2p6 3s2 3p6 4s2 3d2","4s2",4,4,2,-1,"+1/2"],
+[23,"V","1s2 2s2 2p6 3s2 3p6 4s2 3d3","4s2",5,4,2,0,"+1/2"],
+
+[24,"Cr","1s2 2s2 2p6 3s2 3p6 4s1 3d5","4s1",6,4,2,2,"+1/2"],
+
+[25,"Mn","1s2 2s2 2p6 3s2 3p6 4s2 3d5","4s2",7,4,2,2,"-1/2"],
+[26,"Fe","1s2 2s2 2p6 3s2 3p6 4s2 3d6","4s2",8,4,2,-2,"-1/2"],
+[27,"Co","1s2 2s2 2p6 3s2 3p6 4s2 3d7","4s2",9,4,2,-1,"-1/2"],
+[28,"Ni","1s2 2s2 2p6 3s2 3p6 4s2 3d8","4s2",10,4,2,0,"-1/2"],
+
+[29,"Cu","1s2 2s2 2p6 3s2 3p6 4s1 3d10","4s1",11,4,2,2,"-1/2"],
+
+[30,"Zn","1s2 2s2 2p6 3s2 3p6 4s2 3d10","4s2",12,4,2,2,"-1/2"],
+[31,"Ga","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p1","4s2 4p1",13,4,1,-1,"+1/2"],
+[32,"Ge","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p2","4s2 4p2",14,4,1,-1,"+1/2"],
+[33,"As","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p3","4s2 4p3",15,4,1,-1,"+1/2"],
+[34,"Se","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p4","4s2 4p4",16,4,1,-1,"-1/2"],
+[35,"Br","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p5","4s2 4p5",17,4,1,-1,"-1/2"],
+[36,"Kr","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6","4s2 4p6",18,4,1,-1,"-1/2"],
+
+[37,"Rb","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1","5s1",1,5,0,0,"+1/2"],
+[38,"Sr","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2","5s2",2,5,0,0,"-1/2"],
+
+[39,"Y","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d1","5s2",3,5,2,-2,"+1/2"],
+[40,"Zr","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d2","5s2",4,5,2,-1,"+1/2"],
+
+[41,"Nb","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1 4d4","5s1",5,5,2,0,"+1/2"],
+[42,"Mo","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1 4d5","5s1",6,5,2,0,"+1/2"],
+[43,"Tc","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d5","5s2",7,5,2,0,"-1/2"],
+[44,"Ru","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1 4d7","5s1",8,5,2,0,"-1/2"],
+[45,"Rh","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1 4d8","5s1",9,5,2,0,"-1/2"],
+[46,"Pd","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 4d10","4d10",10,5,2,0,"-1/2"],
+[47,"Ag","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s1 4d10","5s1",11,5,2,0,"-1/2"],
+[48,"Cd","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10","5s2",12,5,2,0,"-1/2"],
+[49,"In","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p1","5s2 5p1",13,5,1,-1,"+1/2"],
+[50,"Sn","1s2 2s2 2p6 3s2 3p6 4s2 3d10 4p6 5s2 4d10 5p2","5s2 5p2",14,5,1,-1,"+1/2"]
+
+];
+
+
+/*
+===========================================================
+MEZCLAR PREGUNTAS
+===========================================================
+*/
+
+function shuffle(array) {
+
+  for (let i = array.length - 1; i > 0; i--) {
+
+    const j = Math.floor(Math.random() * (i + 1));
+
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+
+  return array;
+}
+
+
+/*
+===========================================================
+NORMALIZAR RESPUESTAS
+===========================================================
+*/
+
+function normalize(text) {
+
+  return text
+    .toLowerCase()
+    .replace(/[⁰¹²³⁴⁵⁶⁷⁸⁹]/g, function(c) {
+
+      const supers = {
+        "⁰":"0",
+        "¹":"1",
+        "²":"2",
+        "³":"3",
+        "⁴":"4",
+        "⁵":"5",
+        "⁶":"6",
+        "⁷":"7",
+        "⁸":"8",
+        "⁹":"9"
+      };
+
+      return supers[c];
+
+    })
+    .replace(/\s+/g, "")
+    .replace(/−/g, "-");
+}
+
+
+/*
+===========================================================
+VARIABLES
+===========================================================
+*/
+
+let questions = [];
+
+let index = 0;
+
+let score = 0;
+
+
+/*
+===========================================================
+MOSTRAR PREGUNTA
+===========================================================
+*/
+
+function showQuestion() {
+
+  const q = questions[index];
+
+  document.getElementById("counter").textContent =
+    `Pregunta ${index + 1} de ${questions.length}`;
+
+  document.getElementById("progress").style.width =
+    ((index / questions.length) * 100) + "%";
+
+  /*
+  Solo mostramos el número atómico.
+  */
+
+  document.getElementById("atomic").textContent =
+    `Z = ${q[0]}`;
+
+  document.getElementById("feedback").style.display = "none";
+
+  document
+    .querySelectorAll("input")
+    .forEach(input => input.value = "");
+
+  document.getElementById("check").textContent = "Comprobar";
+
+  document.getElementById("check").onclick = check;
+
+}
+
+
+/*
+===========================================================
+COMPROBAR CONFIGURACIÓN
+===========================================================
+*/
+
+function sameConfig(user, correct) {
+
+  return normalize(user) === normalize(correct);
+
+}
+
+
+/*
+===========================================================
+COMPROBAR RESPUESTA
+===========================================================
+*/
+
+function check() {
+
+  const q = questions[index];
+
+  const config =
+    document.getElementById("config").value;
+
+  const valence =
+    document.getElementById("valence").value;
+
+  const group =
+    document.getElementById("group").value.trim();
+
+  const period =
+    document.getElementById("period").value.trim();
+
+  const n =
+    document.getElementById("n").value.trim();
+
+  const l =
+    document.getElementById("l").value.trim();
+
+  const ml =
+    document.getElementById("ml").value.trim();
+
+  const spin =
+    document.getElementById("spin").value
+      .trim()
+      .replace("−","-");
+
+
+  /*
+  m_l puede tener cualquier valor entero
+  entre -l y +l.
+  */
+
+  const mlCorrecto =
+    Number.isInteger(Number(ml)) &&
+    Number(ml) >= -Number(l) &&
+    Number(ml) <= Number(l);
+
+
+  /*
+  El spin puede ser +1/2 o -1/2.
+  */
+
+  const spinCorrecto =
+    /^[-+]?1\s*\/\s*2$/.test(spin);
+
+
+  const correct = [
+
+    sameConfig(config, q[2]),
+
+    sameConfig(valence, q[3]),
+
+    group == q[4],
+
+    period == q[5],
+
+    n == q[5],
+
+    l == q[6],
+
+    mlCorrecto,
+
+    spinCorrecto
+
+  ];
+
+
+  const ok = correct.every(Boolean);
+
+
+  const feedback =
+    document.getElementById("feedback");
+
+
+  if (ok) {
+
+    score++;
+
+    feedback.className = "feedback ok";
+
+    feedback.innerHTML =
+      "<strong>✓ Correcto.</strong> Todos los apartados están bien.";
+
+  }
+
+  else {
+
+    feedback.className = "feedback bad";
+
+    feedback.innerHTML = `
+      <strong>✗ Hay algún error.</strong><br><br>
+
+      Configuración electrónica:
+      ${q[2]}<br>
+
+      Capa de valencia:
+      ${q[3]}<br>
+
+      Grupo:
+      ${q[4]}<br>
+
+      Período:
+      ${q[5]}<br>
+
+      n:
+      ${q[5]}<br>
+
+      l:
+      ${q[6]}<br>
+
+      mₗ:
+      cualquier valor entre ${-q[6]} y ${q[6]}<br>
+
+      nº spin:
+      +1/2 o −1/2
+    `;
+
+  }
+
+
+  feedback.style.display = "block";
+
+
+  document.getElementById("check").textContent =
+    index === questions.length - 1
+      ? "Ver resultado"
+      : "Siguiente";
+
+
+  document.getElementById("check").onclick = next;
+
+}
+
+
+/*
+===========================================================
+SIGUIENTE PREGUNTA
+===========================================================
+*/
+
+function next() {
+
+  index++;
+
+
+  if (index >= questions.length) {
+
+    document.querySelector(".card").innerHTML = `
+
+      <h1>Test terminado</h1>
+
+      <div class="score">
+        Puntuación: ${score} / ${questions.length}
+      </div>
+
+      <button
+        class="check"
+        onclick="location.reload()">
+
+        Repetir test
+        (nuevo orden)
+
+      </button>
+
+    `;
+
+    return;
+  }
+
+
+  showQuestion();
+
+}
+
+
+/*
+===========================================================
+INICIAR TEST
+===========================================================
+*/
+
+questions = shuffle([...elements]);
+
+showQuestion();
+
+</script>
+
+</body>
+</html>
